@@ -117,7 +117,6 @@ for epoch in range(num_epochs):
         fl = 0
         now += 1
 
-        if now+bag_length >= len(words): print now+bag_length, len(words)
         if words[now+bag_length] not in vocab: continue
 
         for i in range(now, now+bag_length):
