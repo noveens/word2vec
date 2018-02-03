@@ -41,9 +41,13 @@ class Net:
     def fetch_vectors(self):
         return self.layer_1_matrix
 
-    def backprop(self, y, input, output):
+    def backprop(self, y, word_ind, input, output):
         e = copy.deepcopy(output)
-        e[y] -= 1.0
+        e *= float(len(word_ind))
+        for now in word_ind:
+            e[now] -= 1.0
+
+        ########### e sahi aa rha hai, maan lia
 
         # input-hidden
         t1 = self.learning_rate * np.outer(input, np.matmul(self.layer_2_matrix, e))
@@ -57,13 +61,16 @@ class Net:
 
     def train(self, word_ind, y):
         input = np.zeros(vocab_size)
-        for i in range(len(word_ind)):
-            input[word_ind[i]] += 1.0 / float(len(word_ind))
+
+        input[y] = 1
+
+        # for i in range(len(word_ind)):
+            # input[word_ind[i]] += 1.0 / float(len(word_ind))
 
         output_1 = self.activation(np.matmul(self.layer_1_matrix.transpose(), input))
         output_2 = self.softmax(np.matmul(self.layer_2_matrix.transpose(), output_1))
 
-        self.loss += self.backprop(y, input, output_2)
+        self.loss += self.backprop(y, word_ind, input, output_2)
 
 f = open("full_text_sentences_new.txt")
 lines = f.readlines()
