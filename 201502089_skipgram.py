@@ -35,8 +35,11 @@ class Net:
         return e_x / e_x.sum(axis=0)
 
     def loss_func(self, y, out):
-        if out[y] == 0: return 1000000
-        return -np.log(out[y])
+        ans = 0.0
+        for i in y:
+            if out[i] == 0: return 1000000
+            ans += -np.log(out[i])
+        return ans/float(len(y))
 
     def fetch_vectors(self):
         return self.layer_1_matrix
@@ -57,12 +60,12 @@ class Net:
         self.layer_1_matrix -= t1
         self.layer_2_matrix -= t2
 
-        return self.loss_func(y, output)
+        return self.loss_func(word_ind, output)
 
     def train(self, word_ind, y):
         input = np.zeros(vocab_size)
 
-        input[y] = 1
+        input[y] = 1.0
 
         # for i in range(len(word_ind)):
             # input[word_ind[i]] += 1.0 / float(len(word_ind))
@@ -102,11 +105,11 @@ print "Data reading complete!"
 print "len of vocab =", vocab_size
 
 ######################## HYPER-PARAMETERS ########################
-num_epochs = 5
+num_epochs = 2
 bag_length = 2
-print_loss_after = 20000
+print_loss_after = 2000
 hidden_size = 25
-max_iters = 100000
+max_iters = 10000
 ##################################################################
 
 model = Net(vocab_size, hidden_size)

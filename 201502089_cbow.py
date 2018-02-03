@@ -95,11 +95,11 @@ print "Data reading complete!"
 print "len of vocab =", vocab_size
 
 ######################## HYPER-PARAMETERS ########################
-num_epochs = 5
+num_epochs = 2
 bag_length = 2
-print_loss_after = 20000
+print_loss_after = 2000
 hidden_size = 25
-max_iters = 100000
+max_iters = 10000
 ##################################################################
 
 model = Net(vocab_size, hidden_size)
