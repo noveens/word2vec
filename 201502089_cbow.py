@@ -84,13 +84,13 @@ for line in lines:
 
 for i in sorted(temp.items(), key=lambda x:x[1], reverse=True):
     if i[0] not in stopwords and d.check(i[0]) == True and i[0].isdigit() == False:
-        print i[0],
+        # print i[0],
         vocab[i[0]] = num_u
         # print i
         num_u += 1
     if num_u >= v_size: break
 
-print
+# print
 del temp,lines
 gc.collect()
 
