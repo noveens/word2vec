@@ -1,4 +1,6 @@
 import numpy as np
+import copy
+import gc
 
 class Net:
     def __init__(self, vocab_size, hidden_size):
@@ -29,17 +31,17 @@ class Net:
         return -np.log(out[y])
 
     def backprop(self, y, input, output):
-        e = np.zeros(self.vocab_size)
-        e[y] = 1
-        e -= output
-        
-        # hidden-output
-        t2 = self.layer_2_matrix - (self.learning_rate * np.outer(np.matmul(self.layer_1_matrix.transpose(), input), e.transpose()))
-        # input-hidden
-        t1 = self.layer_1_matrix - (self.learning_rate * np.outer(input, np.matmul(self.layer_2_matrix, e)))
+        e = copy.deepcopy(output)
+        e[y] -= 1.0
 
-        self.layer_2_matrix = t2
-        self.layer_1_matrix = t1
+        # input-hidden
+        t1 = self.learning_rate * np.outer(input, np.matmul(self.layer_2_matrix, e))
+        # print "input:",input.shape,"mult:",np.matmul(self.layer_2_matrix, e).shape
+        # hidden-output
+        t2 = self.learning_rate * np.outer(np.matmul(self.layer_1_matrix.transpose(), input), e.transpose())
+
+        self.layer_1_matrix -= t1
+        self.layer_2_matrix -= t2
 
         return self.loss_func(y, output)
 
@@ -59,7 +61,7 @@ lines = f.readlines()
 words = []
 vocab = {}
 num_u = 0
-v_size = 20000
+v_size = 5000
 temp = {}
 
 for line in lines:
@@ -74,6 +76,9 @@ for i in sorted(temp.items(), key=lambda x:x[1], reverse=True):
     # print i
     num_u += 1
     if num_u >= v_size: break
+
+del temp,lines
+gc.collect()
 
 vocab_size = num_u
 print "Data reading complete!"
