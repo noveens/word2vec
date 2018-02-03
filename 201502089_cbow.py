@@ -100,7 +100,7 @@ print "len of vocab =", vocab_size
 
 ######################## HYPER-PARAMETERS ########################
 num_epochs = 3
-bag_length = 5
+bag_length = 2
 print_loss_after = 100
 hidden_size = 25
 max_iters = 100000
