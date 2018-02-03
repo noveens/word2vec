@@ -1,6 +1,14 @@
 import numpy as np
 import copy
 import gc
+from scipy import spatial
+import enchant
+import nltk
+
+from nltk.corpus import stopwords
+
+stopwords = set(stopwords.words('english'))
+d = enchant.Dict("en_US")
 
 class Net:
     def __init__(self, vocab_size, hidden_size):
@@ -29,6 +37,9 @@ class Net:
     def loss_func(self, y, out):
         if out[y] == 0: return 1000000
         return -np.log(out[y])
+
+    def fetch_vectors(self):
+        return self.layer_1_matrix
 
     def backprop(self, y, input, output):
         e = copy.deepcopy(output)
@@ -61,7 +72,7 @@ lines = f.readlines()
 words = []
 vocab = {}
 num_u = 0
-v_size = 5000
+v_size = 1000
 temp = {}
 
 for line in lines:
@@ -72,11 +83,14 @@ for line in lines:
         else: temp[word] += 1
 
 for i in sorted(temp.items(), key=lambda x:x[1], reverse=True):
-    vocab[i[0]] = num_u
-    # print i
-    num_u += 1
+    if i[0] not in stopwords and d.check(i[0]) == True and i[0].isdigit() == False:
+        print i[0],
+        vocab[i[0]] = num_u
+        # print i
+        num_u += 1
     if num_u >= v_size: break
 
+print
 del temp,lines
 gc.collect()
 
@@ -85,10 +99,11 @@ print "Data reading complete!"
 print "len of vocab =", vocab_size
 
 ######################## HYPER-PARAMETERS ########################
-num_epochs = 5
+num_epochs = 3
 bag_length = 5
 print_loss_after = 100
-hidden_size = 500
+hidden_size = 25
+max_iters = 100000
 ##################################################################
 
 model = Net(vocab_size, hidden_size)
@@ -100,28 +115,76 @@ now = 0
 for epoch in range(num_epochs):
     itr = 0
     cnt = 1
-    while now + bag_length < len(words):
+    while now + bag_length + bag_length + 1 < len(words):
         word_ind = []
         y = 0
         fl = 0
         now += 1
 
+        if now+bag_length >= len(words): print now+bag_length, len(words)
         if words[now+bag_length] not in vocab: continue
 
         for i in range(now, now+bag_length):
             if words[i] in vocab:
                 word_ind.append(vocab[words[i]])
+
+        for i in range(now+bag_length+1, now+bag_length+1+bag_length):
+            if words[i] in vocab:
+                word_ind.append(vocab[words[i]])
         
         if len(word_ind) == 0: continue
         y = vocab[words[now+bag_length]]
-
-         ############# can do +1 also
         
         model.train(word_ind, y)
         itr += 1
         cnt += 1
 
+        if itr >= max_iters: break
+
         if cnt % print_loss_after == 0:
             print "Epoch: "+str(epoch+1) + "/" + str(num_epochs) + "; Iterations: " + str(itr) + "; Current loss:", model.loss
             model.loss = 0
             cnt = 1
+
+word_vec_all = model.fetch_vectors()
+vectors = {}
+all = []
+for i in vocab:
+    all.append(i)
+    vectors[i] = word_vec_all[vocab[i]]
+
+def cosine(a, b):
+    return spatial.distance.cosine(a, b)
+
+# final = {}
+
+# for i in all:
+#     for j in all:
+#         similarity = cosine(vectors[i], vectors[j])
+#         final[i+","+j] = float(similarity)
+
+# cc = 0
+
+# for i in sorted(final.items(), key=lambda x:x[1], reverse=True):
+#     cc += 1
+#     print i
+#     if cc > 1000: break
+
+while 1:
+    word = raw_input("Word> ").strip()
+
+    if word not in vectors: 
+        print "NHP"
+        continue
+
+    m = {}
+    for i in all:
+        similarity = cosine(vectors[word], vectors[i])
+        m[i] = similarity
+    print "Top 10 words:"
+    ccc = 0
+    for i in sorted(m.items(), key=lambda x:x[1], reverse=False):
+        print i,
+        ccc += 1
+        if ccc >= 10: break
+    print
