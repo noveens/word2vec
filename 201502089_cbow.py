@@ -113,7 +113,7 @@ model.vocab = vocab
 now = 0
 
 for epoch in range(num_epochs):
-    itr = 0
+    itr = 1
     cnt = 1
     while now + bag_length + bag_length + 1 < len(words):
         word_ind = []
